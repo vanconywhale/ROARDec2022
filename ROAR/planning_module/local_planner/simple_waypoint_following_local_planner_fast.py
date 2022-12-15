@@ -64,16 +64,15 @@ class SimpleWaypointFollowingLocalPlanner(LocalPlanner):
         # set waypoint queue to current spawn location
         # 1. find closest waypoint
         # 2. remove all waypoints prior to closest waypoint
-        '''
-        closest_waypoint = self.way_points_queue[0]
-        for waypoint in self.way_points_queue:
-            cur_dist = self.agent.vehicle.transform.location.distance(waypoint.location)
-            closest_dist = self.agent.vehicle.transform.location.distance(closest_waypoint.location)
-            if  cur_dist < closest_dist:
-                closest_waypoint = waypoint
-        while self.way_points_queue[0] != closest_waypoint:
-            self.way_points_queue.popleft()
-        '''
+        if False:
+            closest_waypoint = self.way_points_queue[0]
+            for waypoint in self.way_points_queue:
+                cur_dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+                closest_dist = self.agent.vehicle.transform.location.distance(closest_waypoint.location)
+                if  cur_dist < closest_dist:
+                    closest_waypoint = waypoint
+            while self.way_points_queue[0] != closest_waypoint:
+                self.way_points_queue.popleft()
 
     def is_done(self) -> bool:
         """
@@ -119,6 +118,7 @@ class SimpleWaypointFollowingLocalPlanner(LocalPlanner):
                 self.logger.info("Destination reached")
                 return VehicleControl()
             waypoint: Transform = self.way_points_queue[0]
+            #print(waypoint)
             curr_dist = vehicle_transform.location.distance(waypoint.location)
             if curr_dist < curr_closest_dist:
                 # if i find a waypoint that is closer to me than before

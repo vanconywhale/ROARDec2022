@@ -36,7 +36,10 @@ class PIDController(Controller):
         throttle = self.long_pid_controller.run_in_series(next_waypoint=next_waypoint,
                                                           target_speed=kwargs.get("target_speed", self.max_speed))
         steering = self.lat_pid_controller.run_in_series(next_waypoint=next_waypoint)
-        return VehicleControl(throttle=throttle, steering=steering)
+
+        gear = 2
+
+        return VehicleControl(throttle=throttle, steering=steering, gear=gear)
 
     @staticmethod
     def find_k_values(vehicle: Vehicle, config: dict) -> np.array:

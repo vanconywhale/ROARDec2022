@@ -9,6 +9,7 @@ class VehicleControl(BaseModel):
     throttle: float = Field(default=0)
     steering: float = Field(default=0)
     brake: float = Field(default=0)
+    gear: int = Field(default=1)
 
     @staticmethod
     def clamp(n, minn, maxn):

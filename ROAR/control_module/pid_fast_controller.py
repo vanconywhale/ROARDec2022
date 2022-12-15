@@ -3,8 +3,9 @@ from matplotlib.pyplot import close
 from pydantic import BaseModel, Field
 from ROAR.control_module.controller import Controller
 from ROAR.utilities_module.vehicle_models import VehicleControl, Vehicle
+import keyboard
 
-from ROAR.utilities_module.data_structures_models import Transform, Location
+from ROAR.utilities_module.data_structures_models import Transform, Location, Rotation
 from collections import deque
 import numpy as np
 import math
@@ -13,6 +14,7 @@ from ROAR.agent_module.agent import Agent
 from typing import Tuple
 import json
 from pathlib import Path
+from ROAR.planning_module.mission_planner.waypoint_following_mission_planner import WaypointFollowingMissionPlanner
 
 class PIDFastController(Controller):
     def __init__(self, agent, steering_boundary: Tuple[float, float],
@@ -28,6 +30,25 @@ class PIDFastController(Controller):
         self.delta_pitch = 0
         self.pitch_bypass = False
         self.force_brake = False
+        self.full_throttle = False
+
+        self.waypoint_queue = []
+
+        with open("ROAR\\control_module\\fast_list.txt") as f:
+            for line in f:
+                raw = line.split(",")
+                waypoint = Transform(location=Location(x=raw[0], y=raw[1], z=raw[2]), rotation=Rotation(pitch=0, yaw=0, roll=0))
+                self.waypoint_queue.append(waypoint)
+
+        if False:
+            closest_waypoint = self.waypoint_queue[0]
+            for waypoint in self.waypoint_queue:
+                cur_dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+                closest_dist = self.agent.vehicle.transform.location.distance(closest_waypoint.location)
+                if  cur_dist < closest_dist:
+                    closest_waypoint = waypoint
+            while self.waypoint_queue[0] != closest_waypoint:
+                self.waypoint_queue.pop(0)
 
         self.lat_pid_controller = LatPIDController(
             agent=agent,
@@ -52,7 +73,7 @@ class PIDFastController(Controller):
 
         # calculate change in pitch
         pitch = float(next_waypoint.record().split(",")[4])
-        #print(next_waypoint.record())
+        print(next_waypoint.record())
         
         if pitch == 1.234567890:
             # bypass pitch
@@ -103,7 +124,24 @@ class PIDFastController(Controller):
         #print(round(self.delta_pitch, 2))
         #print(round(wide_error, 2))
         
-        return VehicleControl(throttle=throttle, steering=steering, brake=brake)
+        gear = max(1, (int)((current_speed - 2*pitch) / 60))
+
+        waypoint = self.waypoint_queue[0]
+        dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+
+        if dist <= 10:
+            self.full_throttle = not self.full_throttle
+            self.waypoint_queue.pop(0)
+        
+        if self.full_throttle:
+            throttle = 1
+            brake = 0
+            print("full throttle")
+        
+        if keyboard.is_pressed("space"):
+            print("boop")
+        
+        return VehicleControl(throttle=throttle, steering=steering, brake=brake, gear=gear)
 
     @staticmethod
     def find_k_values(vehicle: Vehicle, config: dict) -> np.array:
