@@ -73,7 +73,7 @@ class PIDFastController(Controller):
 
         # calculate change in pitch
         pitch = float(next_waypoint.record().split(",")[4])
-        print(next_waypoint.record())
+        # print(next_waypoint.record())
         
         if pitch == 1.234567890:
             # bypass pitch
@@ -136,10 +136,10 @@ class PIDFastController(Controller):
         if self.full_throttle:
             throttle = 1
             brake = 0
-            print("full throttle")
+            # print("full throttle")
         
-        if keyboard.is_pressed("space"):
-            print("boop")
+        # if keyboard.is_pressed("space"):
+        #     print("boop")
         
         return VehicleControl(throttle=throttle, steering=steering, brake=brake, gear=gear)
 
